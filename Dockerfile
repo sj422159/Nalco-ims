@@ -1,4 +1,4 @@
-FROM php:8.2-cli-alpine
+FROM php:8.2-fpm-alpine
 
 WORKDIR /app
 
@@ -14,18 +14,18 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application code
 COPY . /app
 
-# Set proper permissions to avoid running Composer as root
-RUN chown -R www-data:www-data /app
-USER www-data
-
-# Install Composer dependencies (without --no-scripts)
-RUN composer install 
+# Install Composer dependencies
+RUN composer install --no-dev --optimize-autoloader
 
 # Generate application key
 RUN php artisan key:generate --ansi
 
-# Expose port 8000 (default for artisan serve)
-EXPOSE 8000
+# Set proper permissions
+RUN chown -R www-data:www-data /app
+RUN chmod -R 775 /app/storage /app/bootstrap/cache
 
-# Start the application
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Expose port 80
+EXPOSE 80
+
+# Serve the application with PHP-FPM and Nginx
+CMD ["php-fpm"]
