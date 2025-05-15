@@ -1,16 +1,40 @@
+<?php
 
+use Symfony\Component\Dotenv\Dotenv;
 
-'pgsql' => [
-    'driver' => 'pgsql',
-    'url' => env('DATABASE_URL'),
-    'host' => env('DB_HOST', '127.0.0.1'), // Use the DB_HOST environment variable
-    'port' => env('DB_PORT', '5432'),     // Use the DB_PORT environment variable
-    'database' => env('DB_DATABASE', 'ims_g3yl'), // Use the DB_DATABASE environment variable
-    'username' => env('DB_USERNAME', 'root'), // Use the DB_USERNAME environment variable
-    'password' => env('DB_PASSWORD', ''),     // Use the DB_PASSWORD environment variable
-    'charset' => 'utf8',
-    'prefix' => '',
-    'prefix_indexes' => true,
-    'search_path' => 'public',
-    'sslmode' => 'prefer',
-],
+// Load environment variables
+$dotenv = new Dotenv();
+$dotenv->load(__DIR__.'/../.env'); // Adjust the path if necessary
+
+$defaultConnection = getenv('DATABASE_URL') ? 'default' : (getenv('APP_ENV') === 'test' ? 'test' : 'pgsql');
+
+return [
+    'default' => getenv('APP_ENV') === 'test' ? 'test' : $defaultConnection, // Set the default connection
+
+    'connections' => [
+        'default' => [
+            'url' => getenv('DATABASE_URL'),
+            'driver' => 'pdo_pgsql', // Use pdo_pgsql
+            'server_version' => '13', // Or your PostgreSQL version on Render
+            'charset' => 'utf8',
+            'default_table_collation' => 'utf8_general_ci',
+        ],
+
+        'pgsql' => [
+            'driver' => 'pdo_pgsql',
+            'server_version' => '13', // Or your PostgreSQL version on Render
+            'host' => getenv('DB_HOST'),
+            'port' => getenv('DB_PORT', '5432'),
+            'dbname' => getenv('DB_DATABASE'),
+            'user' => getenv('DB_USERNAME'),
+            'password' => getenv('DB_PASSWORD'),
+            'charset' => 'utf8',
+            'default_table_collation' => 'utf8_general_ci',
+        ],
+       'test' => [
+            'driver' => 'pdo_sqlite',
+            'path' => ':memory:',
+            'memory' => true,
+        ],
+    ],
+];
