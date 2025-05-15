@@ -12,10 +12,13 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application code
 COPY . /app
 
+# Copy the .env file (or .env.example)
+COPY .env .env
+
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set the APP_KEY environment variable
+# Set the APP_KEY environment variable (optional, but good practice)
 ENV APP_KEY="base64:iJJkDmO+DfOskKGqfDf7diUYBjNVaeozAInB9tCzfwo="
 
 # Set the APP_KEY in the .env file
