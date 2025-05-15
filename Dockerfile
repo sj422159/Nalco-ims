@@ -12,17 +12,12 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application code
 COPY . /app
 
-# Copy the .env file (or .env.example)
-COPY .env .env
-
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set the APP_KEY environment variable (optional, but good practice)
-ENV APP_KEY="base64:iJJkDmO+DfOskKGqfDf7diUYBjNVaeozAInB9tCzfwo="
-
-# Set the APP_KEY in the .env file
-RUN sed -i "s/^APP_KEY=/APP_KEY=${APP_KEY}/" .env
+#  DO NOT include any .env related commands here.
+#  Laravel will automatically use environment variables defined in Render.
+#  No need to copy .env or set APP_KEY here.
 
 # Expose port 8000 (default for artisan serve)
 EXPOSE 8000
