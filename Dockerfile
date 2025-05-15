@@ -21,14 +21,14 @@ USER www-data
 # Load environment variables
 RUN if [ -f .env ]; then \
       cp .env .env.prod; \
-      php -r "require '/app/vendor/autoload.php'; (new Dotenv\Dotenv('/app'))->load();"; \
+      php -r "require './vendor/autoload.php'; (new Dotenv\Dotenv('./'))->load();"; \
     fi
 
 # Install Composer dependencies without scripts
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Generate application key
-RUN php artisan key:generate --ansi
+# Generate application key *after* requiring autoloader
+RUN php -r "require './vendor/autoload.php';" && php artisan key:generate --ansi
 
 # Run database migrations
 RUN php artisan migrate --force
