@@ -1,11 +1,9 @@
-FROM php:8.2-fpm-alpine 
+FROM php:8.2-cli-alpine 
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apk add --no-cache --update libzip-dev zip nginx
-
-# Install PHP extensions
+# Install required extensions
+RUN apk add --no-cache --update libzip-dev zip
 RUN docker-php-ext-install pdo pdo_mysql zip
 
 # Install Composer
@@ -14,16 +12,14 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application code
 COPY . /app
 
-# Set application permissions
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
-RUN chmod -R 755 /app/bootstrap/cache /app/storage
+# Install Composer dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Configure Nginx
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/default.conf /etc/nginx/conf.d/default.conf
+# Set application key (if not already in .env)
+RUN php artisan key:generate --ansi
 
-# Expose port 80 for HTTP
-EXPOSE 80
+# Expose port 8000 (default for artisan serve)
+EXPOSE 8000
 
-# Start Nginx and PHP-FPM
-CMD ["/bin/sh", "-c", "nginx -g 'daemon off;' & php-fpm"]
+# Start the artisan serve command
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
