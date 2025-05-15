@@ -14,6 +14,12 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application code
 COPY . /app
 
+# Load environment variables *before* running composer install
+RUN if [ -f .env ]; then \
+      cp .env .env.prod; \
+      php -r "require '/app/vendor/autoload.php'; (new Dotenv\Dotenv('/app'))->load();"; \
+    fi
+
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
