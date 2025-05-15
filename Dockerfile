@@ -18,8 +18,8 @@ COPY . /app
 RUN chown -R www-data:www-data /app
 USER www-data
 
-# Install Composer dependencies
-RUN composer install --no-dev --optimize-autoloader --no-plugins --no-scripts
+# Install Composer dependencies (without --no-scripts)
+RUN composer install --no-dev --optimize-autoloader --no-plugins
 
 # Generate application key
 RUN php artisan key:generate --ansi
