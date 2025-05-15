@@ -2,8 +2,10 @@ FROM php:8.2-cli-alpine
 
 WORKDIR /app
 
-# Install required extensions
+# Install system dependencies
 RUN apk add --no-cache --update libzip-dev zip postgresql-dev
+
+# Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql zip
 
 # Install Composer
@@ -12,15 +14,18 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application code
 COPY . /app
 
-# Install Composer dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Set proper permissions to avoid running Composer as root
+RUN chown -R www-data:www-data /app
+USER www-data
 
-#  DO NOT include any .env related commands here.
-#  Laravel will automatically use environment variables defined in Render.
-#  No need to copy .env or set APP_KEY here.
+# Install Composer dependencies
+RUN composer install --no-dev --optimize-autoloader --no-plugins --no-scripts
+
+# Generate application key
+RUN php artisan key:generate --ansi
 
 # Expose port 8000 (default for artisan serve)
 EXPOSE 8000
 
-# Start the artisan serve command
+# Start the application
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
