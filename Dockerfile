@@ -3,7 +3,7 @@ FROM php:8.2-fpm-alpine
 WORKDIR /app
 
 # Install system dependencies
-RUN apk add --no-cache --update libzip-dev zip
+RUN apk add --no-cache --update libzip-dev zip nginx
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql zip
@@ -18,8 +18,12 @@ COPY . /app
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 RUN chmod -R 755 /app/bootstrap/cache /app/storage
 
-# Expose port (though Render handles this)
-EXPOSE 9000
+# Configure Nginx
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/default.conf /etc/nginx/conf.d/default.conf
 
-# Command to start PHP-FPM
-CMD ["php-fpm"]
+# Expose port 80 for HTTP
+EXPOSE 80
+
+# Start Nginx and PHP-FPM
+CMD ["/bin/sh", "-c", "nginx -g 'daemon off;' & php-fpm"]
