@@ -1,4 +1,4 @@
-FROM php:8.2-cli-alpine 
+FROM php:8.2-cli-alpine
 
 WORKDIR /app
 
@@ -15,8 +15,11 @@ COPY . /app
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set application key (if not already in .env)
-RUN php artisan key:generate --ansi
+# Set the APP_KEY environment variable
+ENV APP_KEY="base64:iJJkDmO+DfOskKGqfDf7diUYBjNVaeozAInB9tCzfwo="
+
+# Set the APP_KEY in the .env file
+RUN sed -i "s/^APP_KEY=/APP_KEY=${APP_KEY}/" .env
 
 # Expose port 8000 (default for artisan serve)
 EXPOSE 8000
