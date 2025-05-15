@@ -14,30 +14,26 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application code
 COPY . /app
 
-# Set proper permissions to avoid running Composer as root
+# Set proper permissions and user
 RUN chown -R www-data:www-data /app
 USER www-data
 
-# Load environment variables
-RUN if [ -f .env ]; then \
-      cp .env .env.prod; \
-      php -r "require './vendor/autoload.php'; (new Dotenv\Dotenv('./'))->load();"; \
-    fi
+# Copy .env file
+COPY .env .env
 
-# Install Composer dependencies without scripts
-RUN composer install --no-dev --optimize-autoloader --no-scripts
-
-# Generate application key *after* requiring autoloader
-RUN php -r "require './vendor/autoload.php';" && php artisan key:generate --ansi
+# Load environment variables and install dependencies
+RUN php -r "require '/app/vendor/autoload.php'; \$dotenv = Dotenv\Dotenv::createImmutable('/app'); \$dotenv->load();" \
+    && composer install --no-dev --optimize-autoloader \
+    && php artisan key:generate --ansi
 
 # Run database migrations
 RUN php artisan migrate --force
 
 # Clear cache
-RUN php artisan cache:clear
-RUN php artisan config:cache
-RUN php artisan view:clear
-RUN php artisan route:clear
+RUN php artisan cache:clear \
+    && php artisan config:cache \
+    && php artisan view:clear \
+    && php artisan route:clear
 
 # Set proper permissions (again, after migrations)
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
