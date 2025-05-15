@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine # Or your preferred PHP version
+FROM php:8.2-fpm-alpine 
 
 WORKDIR /app
 
